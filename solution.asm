@@ -199,8 +199,11 @@ iterateOverFileContent:
     #Setear valor de a1 de pila
     lw $a1, 0($sp)
     addi $sp,$sp, 4
-    
     beqz $t4,onKeyPositionOverflow
+    
+    
+    j iterateOverFileContent
+    
 
 
 onKeyPositionOverflow:
