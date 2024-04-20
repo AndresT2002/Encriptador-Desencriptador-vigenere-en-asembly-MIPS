@@ -1,6 +1,6 @@
 .data
 alfabeto: .asciiz "abcdefghijklmnopqrstuvwxyz"
-fileInput: .asciiz "C://Users//Andres T//Desktop//Arq compu/input.txt"
+fileInput: .asciiz "C://Users//Andres T//Desktop//Taller Arq/input.txt"
 fileWords: .space 1024
 messageLoop: .asciiz "After while loop is done"
 salto: .asciiz "\n"
@@ -49,13 +49,18 @@ main:
     	li $t0,0
     	la $a0 fileWords #Cargo dirección del texto input
     	jal strlenWhile #Obtengo lenght del input (fileWords)
-    	li $t1,0 #Posicion inicial del input (fileWords)
+    	
     	
     	#li $v0,1   #Imprimo el contador del lenght del input
-        #move $a0, $t1 
+        #move $a0, $t0 
         #syscall
         
-        li $t0,0
+        
+        #EN T0 TENGO EL LENGHT DEL STRING INPUT
+        
+        #move $t1,$t0 #Cantidad de caracteres de la palabra a encriptar (fileWords)
+        li $t1,0   #Cantidad de posiciones iteradas del string input
+        la $t4 fileWords #Cargo dirección del texto input
         jal while #Llamado función while
         
         li $v0, 10
@@ -65,7 +70,9 @@ main:
     	
     	
 while:
-        bgt $t0,$t1,exit #Condición de que si t0 es mayor a t1 salta al exit
+
+
+        beq $t1, $t0, exit #Condición de que si t1 es mayor a t0 salta al exit
         #addi $t0,$t0,1 
         #Guardar numero iteracion del while 
         addi $sp,$sp, -8
@@ -73,8 +80,8 @@ while:
         sw $t1, 4($sp)
         
         #Preparar valores necesarios para el searchInput
-        la $t0, fileWords  # Cargar la dirección de la cadena letraBuscada
-        lb $t0, ($t0)         # Cargar el valor ASCII de la primera letra en $t0
+       
+        lb $t0, 0($t4)         # Cargar el valor ASCII de la primera letra en $t0  #AQUI TENGO QUE PONER QUE LA POSICION DE BYTE TIENE QUE SER LA POSICION O EL  VALOR DE T1 DEBIDO A QUE ES LA POSICION DE LA CADENA INPUT
         la  $t1, alfabeto    #Cargar direccion de la cadena del alfabeto en $t0
     	add $t2,$zero,0     #Contador de posiciones del alfabeto
     	li $s0, 26	    #L o lenght del arreglo de letras    
@@ -83,8 +90,10 @@ while:
         #Restaurar numero iteracion del while
         lw $t0, 0($sp)
         lw $t1, 4($sp)
+        addi $t1,$t1,1
+        addi $t4,$t4,1 #Aumento la dirección que estoy apuntando de las letras que recorro (apunto a la siguiente letra)
         addi $sp, $sp, 8
-        jal while  #Volver a ir al procedimiento while     	
+        j while  #Volver a ir al procedimiento while     	
     
 strlenWhile:
 	lb $t1,0($a0) #Cargo en t1 el valor en la posición actual de ese str del input
@@ -110,7 +119,7 @@ searchInputWord:
         addi $t1, $t1, 1 #Contador sobre la palabra en t1 (direcciones de ese string)
         j searchInputWord  #Volver a ir al procedimiento searchInputWord 	
         
-        
+ 
 
 letra_encontrada:
     # $t2 contiene la posición de la letra buscada en el alfabeto
