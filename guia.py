@@ -81,4 +81,5 @@ def decrypt(encryptedText:str,key:str)-> str:
         if posKeyIni == len(key):
             posKeyIni = 0
 
-print(decrypt("kcrd","dog"))
+    return plainText
+print(decrypt("wsye","pene"))

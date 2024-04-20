@@ -28,9 +28,10 @@ main:
     la $a1, keyInput
     la $a2, alfabeto
     la $a3, encryptedFileWords
-    li $t0,0
-    li $t2,0
-    li $t6,26
+    li $t0, 0
+    li $t1, 0
+    li $t2, 0
+    li $t6, 26
     jal iterateOverFileContent
     
     #Close the file
@@ -134,6 +135,7 @@ returnFn:
 # $a2 = Direccion sobre el alfabeto
 # $a3 = Direccion sobre el contenido cifrado
 # $t0 = Indice actual sobre el contenido del documento
+# $t1 = Bandera para indicar si es encriptar (0) , desencriptar(1)
 # $t2 = Indice actual sobre el key
 # $t3 = caracter del contenido
 # $t4 = caracter de la key
@@ -159,9 +161,33 @@ iterateOverFileContent:
 
     #Vignere al caracter
     #Calculo del indice Cifrado
+    #Restamos con 32 ya que 32 representa nuestro inicio del abecedario
+    beq $t1,0,calcEncryptedIndex
+    beq $t1,1,calcDecryptedIndex
+ 
+    
+
+
+onKeyPositionOverflow:
+    li $t2,0
+    j iterateOverFileContent
+
+calcEncryptedIndex:
     subi $t5,$t3,97
     add $t5,$t5,$t4
     subi $t5,$t5,97
+    j calcNewChar
+
+calcDecryptedIndex:
+    sub $t5,$t3,$t4 #Esto no se debe hacer a t5
+    bltz $t5,hacerPositivo
+    j calcNewChar
+
+hacerPositivo:
+    addi $t5,$t5, 26
+    j calcNewChar
+ 
+calcNewChar:
 
     #Calcular la division para poder tener el residuo en t5
     
@@ -200,12 +226,7 @@ iterateOverFileContent:
     lw $a1, 0($sp)
     addi $sp,$sp, 4
     beqz $t4,onKeyPositionOverflow
-    
-    
+
     j iterateOverFileContent
-    
 
 
-onKeyPositionOverflow:
-    li $t2,0
-    j iterateOverFileContent
