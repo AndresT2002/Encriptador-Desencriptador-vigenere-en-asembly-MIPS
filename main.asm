@@ -36,6 +36,7 @@ main:
 	la $a2,1024		# hardcoded buffer length
 	syscall
     	
+    	#Con v0,4 imprimo cadena de caracteres
     	li $v0,4
 	la $a0,fileWords
 	syscall
