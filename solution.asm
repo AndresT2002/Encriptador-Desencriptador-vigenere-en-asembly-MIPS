@@ -1,16 +1,13 @@
 .data
 alfabeto: .asciiz "abcdefghijklmnopqrstuvwxyz"
 fileInput: .asciiz "C://Users//Andres T//Desktop//Taller Arq//input.txt"
-fileOutput: .asciiz "C://Users//Andres T//Desktop//Taller Arq//clon.txt"
+encodedOutput: .asciiz "C://Users//Andres T//Desktop//Taller Arq//criptogram.txt"
+decodedOutput: .asciiz "C://Users//Andres T//Desktop//Taller Arq//decoded.txt"
 fileWords: .space 1024
-messageLoop: .asciiz "After while loop is done"
-salto: .asciiz "\n"
-messageForKey: .asciiz "insert the key for encryption: "
+messageForKey: .asciiz "Insert the key for encryption: "
 keyInput: .space 20
-letraBuscada: .asciiz "d"
-finTextoAscii: .asciiz
-encryptedFileWords: .space 1024 
-
+newFileWords: .space 1024 
+alertText: .asciiz "The program has ended successfully!!!!"
 
 
 .text
@@ -18,46 +15,54 @@ main:
     
     jal askEncryptionKeyMsg
     jal receiveUserEncryptionKey
-    jal openFileToEncode
-    #Now s0 Holds file descriptor
-    jal readFileToEncode
-
+    
+    la $a0,fileInput     	
+    jal openFile
+    jal readFile
+    jal closeFile
     
 
     la $a0, fileWords
     la $a1, keyInput
     la $a2, alfabeto
-    la $a3, encryptedFileWords
+    la $a3, newFileWords
+    li $t0, 0
+    li $t1, 0
+    li $t2, 0
+    li $t6, 26
+    jal iterateOverFileContent
+    
+    #Argumento para escribir codigo encriptado
+    la $a0,encodedOutput     	# get the file name
+    jal writeText
+    jal closeFile
+    
+
+    #Argumentos para leer archivo encriptado
+    la $a0,encodedOutput     	# get the file name
+    jal openFile
+    jal readFile
+    jal closeFile
+    
+    
+    la $a0, fileWords
+    la $a1, keyInput
+    la $a2, alfabeto
+    la $a3, newFileWords
     li $t0, 0
     li $t1, 1
     li $t2, 0
     li $t6, 26
     jal iterateOverFileContent
     
-    #Close the file
-    li $v0, 16         		# close_file syscall code
-    move $a0,$s0      		# file descriptor to close
-    syscall
-
-    #open file 
-    li $v0,13           	# open_file syscall code = 13
-    la $a0,fileOutput     	# get the file name
-    li $a1,1           	# file flag = write (1)
-    syscall
-    move $s1,$v0        	# save the file descriptor. $s0 = file
     
-    #Write the file
-    li $v0,15		# write_file syscall code = 15
-    move $a0,$s1		# file descriptor
-    la $a1,encryptedFileWords		# the string that will be written
-    move $a2, $t0		# length of the toWrite string
-    syscall
-    
-    #MUST CLOSE FILE IN ORDER TO UPDATE THE FILE
-    li $v0,16         		# close_file syscall code
-    move $a0,$s1      		# file descriptor to close
-    syscall
+    la $a0,decodedOutput     	# get the file name
+    jal writeText
+    jal closeFile
 
+    li $v0, 4
+    la $a0, alertText
+    syscall
 
 
     li $v0, 10
@@ -82,28 +87,26 @@ receiveUserEncryptionKey:
 	syscall
     jr $ra
 
-openFileToEncode:
+openFile:
     li $v0,13           	# open_file syscall code = 13
-    la $a0,fileInput     	# get the file name
+    
     li $a1,0           	    # file flag = read (0)
     syscall
     move $s0,$v0        	# save the file descriptor. $s0 = file
     jr $ra
 
-readFileToEncode:
+readFile:
     li $v0, 14		# read_file syscall code = 14
-	move $a0,$s0		# file descriptor
-	la $a1,fileWords  	# The buffer that holds the string of the WHOLE file
-	la $a2,1024		# hardcoded buffer length
-	syscall
+    move $a0,$s0		# file descriptor
+    la $a1,fileWords  	# The buffer that holds the string of the WHOLE file
+    la $a2,1024		# hardcoded buffer length
+    syscall
 
     #Guardar $ra que apunta a main en estos momentos
     addi $sp,$sp, -4
     sw $ra, 0($sp)
 
-    la $a0,fileWords
-    move $t0,$a0
-    jal printInput
+    
     
 
     #Restaurar $ra a main
@@ -112,12 +115,6 @@ readFileToEncode:
     
     jr $ra
 
-
-printInput:
-    li $v0,4
-    move $a0, $t0
-    syscall
-    jr $ra
 
 returnFn:
     jr $ra
@@ -202,7 +199,7 @@ calcNewChar:
 
     #Ahora t5 es el caracter cifrado
     #Guardar caracter cifrado en el texto cifrado
-    la $a3, encryptedFileWords
+    la $a3, newFileWords
     add $a3, $a3, $t0
     sb $t5, ($a3)
 
@@ -232,3 +229,28 @@ calcNewChar:
     j iterateOverFileContent
 
 
+
+writeText:
+    #Open file 
+    li $v0,13           	# open_file syscall code = 13
+    li $a1,1           		# file flag = write (1)
+    syscall
+    move $s0,$v0        	# save the file descriptor. $s0 = file
+    
+    #Write the file
+    li $v0,15			# write_file syscall code = 15
+    move $a0,$s0		# file descriptor
+    la $a1,newFileWords		# the string that will be written
+    move $a2, $t0		# length of the toWrite string
+    syscall
+    
+    jr $ra
+    
+    
+closeFile:
+    #Close the file
+    li $v0, 16         		# close_file syscall code
+    move $a0,$s0      		# file descriptor to close
+    syscall
+    
+    jr $ra
