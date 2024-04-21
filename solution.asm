@@ -29,7 +29,7 @@ main:
     la $a2, alfabeto
     la $a3, encryptedFileWords
     li $t0, 0
-    li $t1, 0
+    li $t1, 1
     li $t2, 0
     li $t6, 26
     jal iterateOverFileContent
@@ -225,6 +225,8 @@ calcNewChar:
     #Setear valor de a1 de pila
     lw $a1, 0($sp)
     addi $sp,$sp, 4
+    beq $t4,10,onKeyPositionOverflow #LF
+    beq $t4,13,onKeyPositionOverflow #CR
     beqz $t4,onKeyPositionOverflow
 
     j iterateOverFileContent
