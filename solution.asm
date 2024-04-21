@@ -1,5 +1,5 @@
 .data
-alfabeto: .asciiz "abcdefghijklmnopqrstuvwxyz"
+alfabeto: .asciiz "abcdefghijklmnopqrstuvwxyz""
 fileInput: .asciiz "C://Users//Andres T//Desktop//Taller Arq//input.txt"
 encodedOutput: .asciiz "C://Users//Andres T//Desktop//Taller Arq//criptogram.txt"
 decodedOutput: .asciiz "C://Users//Andres T//Desktop//Taller Arq//decoded.txt"
@@ -156,9 +156,9 @@ iterateOverFileContent:
     lw $a1, 0($sp)
     addi $sp,$sp, 4
 
+
     #Vignere al caracter
     #Calculo del indice Cifrado
-    #Restamos con 32 ya que 32 representa nuestro inicio del abecedario
     beq $t1,0,calcEncryptedIndex
     beq $t1,1,calcDecryptedIndex
  
@@ -201,9 +201,13 @@ calcNewChar:
     #Guardar caracter cifrado en el texto cifrado
     la $a3, newFileWords
     add $a3, $a3, $t0
-    sb $t5, ($a3)
+    bge $t3,97,onNormalChar
+    bge $t3,32,onSpecialChar
 
 
+    
+
+goNextChar:
     #Avanzamos al siguiente caracter
     addi $a0,$a0,1
     addi $t2,$t2,1
@@ -227,6 +231,17 @@ calcNewChar:
     beqz $t4,onKeyPositionOverflow
 
     j iterateOverFileContent
+
+onNormalChar:
+    sb $t5, ($a3)
+    j goNextChar
+
+onSpecialChar:
+    sb $t3, ($a3)
+    # Cuando es un caracter especial no debemos avanzar en la key
+    # Con esto reseteamos el avance que se realizara en goNextChar
+    subi $t2, $t2,1
+    j goNextChar
 
 
 
